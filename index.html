@@ -102,13 +102,14 @@ async function check(code){show('resv');$('res').innerHTML='<p>Checking...</p>';
  const n=data.attendees,done=data.admitted||[];
  if(n==1)return done.length?res('amber','Already scanned','Entered on '+T(data.last_scan,{...dt,...tm})+'.'):admit(code,[1],n,0);
  if(done.length>=n)return res('amber','Ticket fully used','All '+n+' attendees have entered.');
- const w=document.createElement('div');const s=document.createElement('select');
- for(let i=1;i<=n;i++){const o=new Option('Attendee '+i+(done.includes(i)?' (entered)':''),i);o.disabled=done.includes(i);s.add(o)}
- s.value=[...Array(n).keys()].map(i=>i+1).find(i=>!done.includes(i));
- const b1=document.createElement('button');b1.textContent='Admit selected';b1.onclick=()=>admit(code,[+s.value],n,done.length);
- const b2=document.createElement('button');b2.textContent='Admit all remaining';
- b2.onclick=()=>admit(code,[...Array(n).keys()].map(i=>i+1).filter(i=>!done.includes(i)),n,done.length);
- w.append(s,b1,b2);res('amber','Ticket for '+n,done.length+' of '+n+' already entered. Pick who is entering.',w)}
+ const w=document.createElement('div');w.style.textAlign='left';const boxes=[];
+ for(let i=1;i<=n;i++){const l=document.createElement('label');const was=done.includes(i);
+  l.style.cssText='display:flex;align-items:center;gap:12px;padding:12px;margin:0 0 8px;border-radius:12px;background:rgba(255,255,255,.55);font-weight:600;'+(was?'opacity:.5':'');
+  const c=document.createElement('input');c.type='checkbox';c.value=i;c.checked=was;c.disabled=was;c.style.cssText='width:22px;height:22px;margin:0;padding:0';
+  l.append(c,'Attendee '+i+(was?' (entered)':''));w.append(l);if(!was)boxes.push(c)}
+ const b1=document.createElement('button');b1.textContent='Admit selected';
+ b1.onclick=()=>{const p=boxes.filter(c=>c.checked).map(c=>+c.value);if(!p.length)return alert('Tick at least one attendee.');admit(code,p,n,done.length)};
+ w.append(b1);res('amber','Ticket for '+n,done.length+' of '+n+' already entered. Tick who is entering now.',w)}
 
 async function admit(code,nums,n,before){
  const{data,error}=await SB.rpc('admit',{p_session:cur.id,p_code:code,p_attendees:nums,p_request:crypto.randomUUID()});
