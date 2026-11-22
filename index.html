@@ -101,7 +101,10 @@ async function check(code){show('resv');$('res').innerHTML='<p>Checking...</p>';
  if(data.status=='invalid')return res('red','Invalid ticket','This code is not for this session.');
  if(data.status!='ok')return res('amber','Check-in unavailable',bad[data.status]);
  const n=data.attendees,done=data.admitted||[];
- if(n==1)return done.length?res('amber','Already scanned','Entered on '+T(data.last_scan,{...dt,...tm})+'.'):admit(code,[1],n,0);
+ if(n==1){if(done.length)return res('amber','Already scanned','Entered on '+T(data.last_scan,{...dt,...tm})+'.');
+  const w=document.createElement('div');const y=document.createElement('button');y.textContent='Yes, admit';y.onclick=()=>admit(code,[1],n,0);
+  const no=document.createElement('button');no.textContent='No';no.style.cssText='background:transparent;border:2px solid #2a1700';no.onclick=()=>show('act');
+  w.append(y,no);return res('amber','Ticket for 1','Admit this person?',w)}
  if(done.length>=n)return res('amber','Ticket fully used','All '+n+' attendees have entered.');
  const w=document.createElement('div');w.style.textAlign='left';const boxes=[];
  for(let i=1;i<=n;i++){const was=done.includes(i);const l=document.createElement('label');l.className='pick'+(was?' was':'');
